@@ -2,7 +2,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:lab10/screens/home.dart';
+import 'package:lab10/screens/sgin_in.dart';
 import 'package:lab10/theme/app_color.dart';
+import 'package:lab10/widgets/bottons.dart';
+import 'package:lab10/widgets/spacing.dart';
+
+bool? isList;
 
 class AdjectivePage extends StatefulWidget {
   const AdjectivePage({super.key});
@@ -15,8 +20,15 @@ class AdjectivePage extends StatefulWidget {
 
 class _AdjectivePageState extends State<AdjectivePage> {
   @override
-  bool isList = false;
+  void initState() {
+    background(userColor);
 
+    checkColor();
+
+    super.initState();
+  }
+
+  CollectionReference user = FirebaseFirestore.instance.collection('user');
   background(String? color) {
     if (color == 'White') {
       isList = false;
@@ -55,31 +67,41 @@ class _AdjectivePageState extends State<AdjectivePage> {
     }
   }
 
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Adjective'),
-        centerTitle: true,
-      ),
-      body: isList == false
-          ? Container(
-              width: double.infinity,
-              height: double.infinity,
-              decoration: BoxDecoration(
-                color: background(HomePage.userColor),
-              ),
-              child: const Body(),
-            )
-          : Container(
-              width: double.infinity,
-              height: double.infinity,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: background(HomePage.userColor),
-                ),
-              ),
-              child: const Body(),
+    return StreamBuilder<QuerySnapshot>(
+      stream: user.snapshots(),
+      builder: (BuildContext context, snapshot) {
+        if (snapshot.hasData) {
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text('Adjective'),
+              centerTitle: true,
             ),
+            body: isList == false
+                ? Container(
+                    width: double.infinity,
+                    height: double.infinity,
+                    decoration: BoxDecoration(
+                      color: background(userColor),
+                    ),
+                    child: const Body(),
+                  )
+                : Container(
+                    width: double.infinity,
+                    height: double.infinity,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: background(userColor),
+                      ),
+                    ),
+                    child: const Body(),
+                  ),
+          );
+        } else {
+          return const CircularProgressIndicator();
+        }
+      },
     );
   }
 }
@@ -111,13 +133,16 @@ class _BodyState extends State<Body> {
               setState(() {
                 AdjectivePage.group = value.toString();
               });
-              var role = FirebaseFirestore.instance
+              DocumentReference<Map<String, dynamic>> role = FirebaseFirestore
+                  .instance
                   .collection('user')
                   .doc(FirebaseAuth.instance.currentUser!.uid);
 
               role.update({
                 'role': value.toString(),
               });
+              print(userColor);
+              print(isList);
             },
           ),
           RadioListTile(
@@ -140,13 +165,25 @@ class _BodyState extends State<Body> {
           const SizedBox(height: 20),
           ElevatedButton(
             onPressed: () {
-              Navigator.push(context, MaterialPageRoute(
-                builder: (context) {
-                  return const HomePage();
-                },
-              ));
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) {
+                    return const HomePage();
+                  },
+                ),
+              );
             },
             child: const Text('Enter'),
+          ),
+          addVertecailSpacing(50),
+          CustomElevatedBotton(
+            theFunction: () async {
+              await FirebaseAuth.instance.signOut();
+              Navigator.popUntil(
+                  context, ModalRoute.withName(Navigator.defaultRouteName));
+            },
+            theText: "log out",
           ),
         ],
       ),

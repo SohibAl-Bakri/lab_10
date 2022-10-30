@@ -1,34 +1,12 @@
 // ignore_for_file: must_be_immutable
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:lab10/screens/adjective.dart';
+import 'package:lab10/screens/sgin_in.dart';
 import 'package:lab10/theme/app_color.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
-
-  static bool? isAdmin;
-  static void checkRole() async {
-    User? user = FirebaseAuth.instance.currentUser;
-    DocumentSnapshot userInfo = await FirebaseFirestore.instance
-        .collection('user')
-        .doc(user?.uid)
-        .get();
-    String userRole = userInfo['role'];
-    userRole == "admin" ? isAdmin = true : isAdmin = false;
-  }
-
-  static String? userColor;
-  static void checkColor() async {
-    User? user = FirebaseAuth.instance.currentUser;
-    DocumentSnapshot userInfo = await FirebaseFirestore.instance
-        .collection('user')
-        .doc(user?.uid)
-        .get();
-    String userRole = userInfo['color'];
-    userColor = userRole;
-  }
-
   @override
   State<HomePage> createState() => _HomePageState();
 }
@@ -37,12 +15,11 @@ class _HomePageState extends State<HomePage> {
   CollectionReference user = FirebaseFirestore.instance.collection('user');
   @override
   void initState() {
-    HomePage.checkColor();
-    HomePage.checkRole();
+    checkColor();
+    background(userColor);
     super.initState();
   }
 
-  bool isList = false;
   background(String? color) {
     if (color == 'White') {
       isList = false;
@@ -96,8 +73,7 @@ class _HomePageState extends State<HomePage> {
                 ? Container(
                     width: double.infinity,
                     height: double.infinity,
-                    decoration:
-                        BoxDecoration(color: background(HomePage.userColor)),
+                    decoration: BoxDecoration(color: background(userColor)),
                     child: ListView.builder(
                       itemCount: snapshot.data!.size,
                       itemBuilder: (context, i) {
@@ -117,7 +93,7 @@ class _HomePageState extends State<HomePage> {
                     height: double.infinity,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: background(HomePage.userColor),
+                        colors: background(userColor),
                       ),
                     ),
                     child: ListView.builder(
